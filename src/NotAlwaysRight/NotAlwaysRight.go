@@ -6,6 +6,9 @@ import (
 	"encoding/json"
 	"os"
 	"time"
+	"github.com/gorilla/handlers"
+	"net/http"
+	"github.com/gorilla/mux"
 )
 
 func init() {
@@ -56,10 +59,6 @@ func main() {
 	fmt.Println(string(out))
 
 	for _,v := range storiesList {
-		//fmt.Println(v.Tags[len(v.Tags)-1])
-		//fmt.Println(v.Tags[len(v.Tags)-2])
-		//fmt.Println(v.Tags[len(v.Tags)-3])
-
 		for _,c := range v.Body {
 			for _,b := range c.Content {
 				fmt.Print(b.Text)
@@ -88,5 +87,21 @@ func main() {
 	}
 
 	fmt.Println("Done after:", time.Since(start))
+
+	router := mux.NewRouter().StrictSlash(true)
+	router.HandleFunc("/api/", apiHandler)
+	router.HandleFunc("/", handler)
+	// set up the API handlers
+	// set up the API handlers
+	apiInit(router)
+
+	// set up CORS
+	headersOk := handlers.AllowedHeaders([]string{"Origin","Content-Type", "X-Auth-Token","Authorization","X-Requested-With"})
+	originsOk := handlers.AllowedOrigins([]string{"*"})
+	methodsOk := handlers.AllowedMethods([]string{"GET", "HEAD", "POST", "PUT", "OPTIONS"})
+
+
+	//http.ListenAndServe(":5000", handlers.CORS()(router))
+	http.ListenAndServe(":5000", handlers.CORS(originsOk, headersOk, methodsOk)(router))
 
 }
