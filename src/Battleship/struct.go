@@ -1,6 +1,7 @@
 package main
 
 type Game struct {
+	State string // holds game state 'setup', 'playing' ...
 	Player1 Player
 	Player2 Player
 }

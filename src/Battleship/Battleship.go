@@ -5,6 +5,7 @@ import (
 	"strings"
 	"bufio"
 	"os"
+	"regexp"
 )
 
 /*
@@ -27,11 +28,14 @@ Destroyed ships are announced (optional)
 
 Once a player has sunk all the op
  */
-func main () {
+ var (
+ 	me *Player
+ 	game Game
+ 	coordRex *regexp.Regexp
+ )
 
-	var (
-		game Game
-	)
+func main () {
+	coordRex = regexp.MustCompile(`([a-jA-J])([0-9])`)
 
 	// start shell
 	reader := bufio.NewReader(os.Stdin)
@@ -64,7 +68,24 @@ Shell:
 			fmt.Println("Bye!")
 			break Shell
 		default:
-			fmt.Println("Unknown command:",text)
+			isCoord := false
+			if len(text) == 2 {
+				// on an exactly 2 character input, check if it's a coordinate
+				coords := coordRex.FindAllStringSubmatch(text, -1)
+				if len(coords) > 0 {
+					isCoord = true
+					// since it's a coord, I need to know what I'm doing with it
+					if game.State == "setup" {
+						// if we're in setup, I'm probalby placing ships
+						read := readLine("make an input")
+						fmt.Println("Read:",read)
+					}
+				}
+			}
+			// if it was not a coord, print the unknown command text
+			if !isCoord {
+				fmt.Println("Unknown command:",text)
+			}
 		}
 
 	}
