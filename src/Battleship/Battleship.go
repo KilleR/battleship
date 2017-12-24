@@ -2,9 +2,6 @@ package main
 
 import (
 	"fmt"
-	"strings"
-	"bufio"
-	"os"
 )
 
 /*
@@ -29,88 +26,38 @@ Once a player has sunk all the op
  */
 var (
 	me   *Player
-	game Game
+	clientGame Game
 )
 
 func main() {
 	// start shell
-	reader := bufio.NewReader(os.Stdin)
 	fmt.Println("Battleship!")
 	fmt.Println("------------")
+	fmt.Print(">")
 
 Shell:
 	for {
 		// Check for game end
-		if game.State == "playing" && me.ShipsRemaining() <= 0 {
+		if clientGame.State == "playing" && me.ShipsRemaining() <= 0 {
 			fmt.Println("You Lose!")
 			break Shell
 		}
 
-		fmt.Print("-> ")
-		text, err := reader.ReadString('\n')
-		if err != nil {
-			fmt.Println("Error reading input:", err)
-		}
-		// strip LF
-		text = strings.Replace(text, "\n", "", -1)
-		// strip CR
-		text = strings.Replace(text, "\r", "", -1)
+		text := readLine("")
 
 		switch text {
-		case "hi":
-			fmt.Println("Hello!")
 		case "start":
 			fmt.Println("Starting...")
-			game = gameStart()
-		case "stop":
-			fmt.Println("Stopping...")
-		case "render":
-			if game.State == "" {
-				fmt.Println("Game has not started, there is no board to render")
-			} else {
-				fmt.Println(render(game.Player1))
-			}
-		case "fired":
-			if game.State == "" {
-				fmt.Println("Game has not started, there is no board to render")
-			} else {
-				fmt.Println(renderFired(game.Player1))
-			}
-		case "ships":
-			fmt.Println(me.ShipStatus())
+			clientGame = gameStart()
 		case "exit":
 			fmt.Println("Bye!")
 			break Shell
 		default:
-			isCoord := false
-			if len(text) == 2 {
-				// on an exactly 2 character input, check if it's a coordinate
-				coords, err := stringToCoords(text)
-				if err != nil {
-					fmt.Println("Failed to parse coordinate:", err)
-				} else {
-					fmt.Println("coords entered:", coords)
-					isCoord = true
-					// since it's a coord, I need to know what I'm doing with it
-					switch game.State {
-					case "setup":
-						// if we're in setup, I'm probalby placing ships
-						read := readLine("make an input")
-						fmt.Println("Read:", read)
-					case "playing":
-						fmt.Println("Shot fired at: " + text)
-						fireResult, err := me.FireAt(coords)
-						if err != nil {
-							fmt.Println("Firing error:",err)
-							continue Shell
-						}
-						fmt.Println(fireResult)
-					}
-				}
-			}
-			// if it was not a coord, print the unknown command text
-			if !isCoord {
+			if clientGame.State == "" {
 				fmt.Println("Unknown command:", text)
+				fmt.Print(">")
+			} else {
+				me.Input <- text
 			}
 		}
 

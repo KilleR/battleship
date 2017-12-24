@@ -11,8 +11,8 @@ import (
 )
 
 func readLine(prompt string) string{
-	fmt.Println(prompt)
-	fmt.Print("->")
+	fmt.Print(prompt)
+	//fmt.Print("->")
 
 	reader := bufio.NewReader(os.Stdin)
 	text, err := reader.ReadString('\n')
@@ -118,4 +118,36 @@ func coordsToString(coord [2]int) (string, error) {
 		return output, errors.New(errString)
 	}
 
+}
+
+func makePlayerShips() []*Ship {
+	ships := []*Ship{
+		{
+			Name:   "Carrier",
+			Length: 5,
+			Hits:   0,
+		},
+		{
+			Name:   "Battleship",
+			Length: 4,
+			Hits:   0,
+		},
+		{
+			Name:   "Submarine",
+			Length: 3,
+			Hits:   0,
+		},
+		{
+			Name:   "Cruiser",
+			Length: 3,
+			Hits:   0,
+		},
+		{
+			Name:   "Destroyer",
+			Length: 2,
+			Hits:   0,
+		},
+	}
+
+	return ships
 }
