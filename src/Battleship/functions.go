@@ -27,8 +27,8 @@ func readLine(prompt string) string{
 	return text
 }
 
-func stringToCoords(coord string) ([]int, error) {
-	output := make([]int, 2)
+func stringToCoords(coord string) ([2]int, error) {
+	var output [2]int
 
 	coordRex := regexp.MustCompile(`([a-jA-J])([0-9])`)
 
@@ -73,7 +73,7 @@ func stringToCoords(coord string) ([]int, error) {
 
 }
 
-func coordsToString(coord []int) (string, error) {
+func coordsToString(coord [2]int) (string, error) {
 	output := ""
 
 	if(len(coord) == 2 ) {

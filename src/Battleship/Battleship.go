@@ -27,12 +27,12 @@ Destroyed ships are announced (optional)
 
 Once a player has sunk all the op
  */
- var (
- 	me *Player
- 	game Game
- )
+var (
+	me   *Player
+	game Game
+)
 
-func main () {
+func main() {
 	// start shell
 	reader := bufio.NewReader(os.Stdin)
 	fmt.Println("Battleship!")
@@ -40,6 +40,12 @@ func main () {
 
 Shell:
 	for {
+		// Check for game end
+		if game.State == "playing" && me.ShipsRemaining() <= 0 {
+			fmt.Println("You Lose!")
+			break Shell
+		}
+
 		fmt.Print("-> ")
 		text, err := reader.ReadString('\n')
 		if err != nil {
@@ -59,7 +65,19 @@ Shell:
 		case "stop":
 			fmt.Println("Stopping...")
 		case "render":
-			fmt.Println(render(game.Player1.Board))
+			if game.State == "" {
+				fmt.Println("Game has not started, there is no board to render")
+			} else {
+				fmt.Println(render(game.Player1))
+			}
+		case "fired":
+			if game.State == "" {
+				fmt.Println("Game has not started, there is no board to render")
+			} else {
+				fmt.Println(renderFired(game.Player1))
+			}
+		case "ships":
+			fmt.Println(me.ShipStatus())
 		case "exit":
 			fmt.Println("Bye!")
 			break Shell
@@ -74,16 +92,25 @@ Shell:
 					fmt.Println("coords entered:", coords)
 					isCoord = true
 					// since it's a coord, I need to know what I'm doing with it
-					if game.State == "setup" {
+					switch game.State {
+					case "setup":
 						// if we're in setup, I'm probalby placing ships
 						read := readLine("make an input")
-						fmt.Println("Read:",read)
+						fmt.Println("Read:", read)
+					case "playing":
+						fmt.Println("Shot fired at: " + text)
+						fireResult, err := me.FireAt(coords)
+						if err != nil {
+							fmt.Println("Firing error:",err)
+							continue Shell
+						}
+						fmt.Println(fireResult)
 					}
 				}
 			}
 			// if it was not a coord, print the unknown command text
 			if !isCoord {
-				fmt.Println("Unknown command:",text)
+				fmt.Println("Unknown command:", text)
 			}
 		}
 
