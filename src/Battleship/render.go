@@ -1,17 +1,26 @@
 package main
 
+import (
+)
+
 func render(b *GameBoard) string {
 	output := "";
 
+	rows := make([]string, 10)
+
 	for _, x := range b.Grid {
-		for _,y := range x {
+		for j,y := range x {
 			if y != nil {
-				output += "╬"
+				rows[j] += "╬"
 			} else {
-				output += "▒"
+				rows[j] += "."
 			}
 		}
-		output += "\n"
+		//output += "\n"
+	}
+
+	for _, r := range rows {
+		output += r+"\n"
 	}
 
 	return output

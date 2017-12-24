@@ -5,7 +5,6 @@ import (
 	"strings"
 	"bufio"
 	"os"
-	"regexp"
 )
 
 /*
@@ -31,12 +30,9 @@ Once a player has sunk all the op
  var (
  	me *Player
  	game Game
- 	coordRex *regexp.Regexp
  )
 
 func main () {
-	coordRex = regexp.MustCompile(`([a-jA-J])([0-9])`)
-
 	// start shell
 	reader := bufio.NewReader(os.Stdin)
 	fmt.Println("Battleship!")
@@ -71,8 +67,11 @@ Shell:
 			isCoord := false
 			if len(text) == 2 {
 				// on an exactly 2 character input, check if it's a coordinate
-				coords := coordRex.FindAllStringSubmatch(text, -1)
-				if len(coords) > 0 {
+				coords, err := stringToCoords(text)
+				if err != nil {
+					fmt.Println("Failed to parse coordinate:", err)
+				} else {
+					fmt.Println("coords entered:", coords)
 					isCoord = true
 					// since it's a coord, I need to know what I'm doing with it
 					if game.State == "setup" {
