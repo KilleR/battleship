@@ -88,38 +88,35 @@ func (p *Player) Init() {
 				p.PassTurn()
 			default:
 				isCoord := false
-				if len(msg) == 2 {
-					// on an exactly 2 character input, check if it's a coordinate
-					coords, err := stringToCoords(msg)
-					if err != nil {
-						p.Output <- fmt.Sprint("Failed to parse coordinate:", err)
-					} else {
-						// check if it's this player's turn
-						if p.game.PlayerTurn == nil {
-							p.Output <- fmt.Sprint("Waiting for the other player")
-							continue CmdLoop
-						} else if p.game.PlayerTurn != p {
-							p.Output <- fmt.Sprint("It is not your turn")
-							continue CmdLoop
-						}
-						p.Output <- fmt.Sprintf("coords entered: %v", coords)
-						isCoord = true
-						// since it's a coord, I need to know what I'm doing with it
-						switch p.game.State {
-						case "playing":
-							p.Output <- fmt.Sprintf("Shot fired at: %s", msg)
-							fireResult, err := p.FireAt(coords)
-							if err != nil {
-								p.Output <- fmt.Sprintf("Firing error: %s", err)
-								continue CmdLoop
-							}
-							p.Output <- fmt.Sprint(fireResult)
-							p.PassTurn() // end turn if we get a "successful" shot
-						}
-					}
+				coords, err := stringToCoords(msg)
+				if err == nil {
+					isCoord = true
 				}
+				if isCoord {
+					// check if it's this player's turn
+					if p.game.PlayerTurn == nil {
+						p.Output <- fmt.Sprint("Waiting for the other player")
+						continue CmdLoop
+					} else if p.game.PlayerTurn != p {
+						p.Output <- fmt.Sprint("It is not your turn")
+						continue CmdLoop
+					}
+					p.Output <- fmt.Sprintf("coords entered: %v", coords)
+					isCoord = true
+					// since it's a coord, I need to know what I'm doing with it
+					switch p.game.State {
+					case "playing":
+						p.Output <- fmt.Sprintf("Shot fired at: %s", msg)
+						fireResult, err := p.FireAt(coords)
+						if err != nil {
+							p.Output <- fmt.Sprintf("Firing error: %s", err)
+							continue CmdLoop
+						}
+						p.Output <- fmt.Sprint(fireResult)
+						p.PassTurn() // end turn if we get a "successful" shot
+					}
+				} else {
 				// if it was not a coord, print the unknown command text
-				if !isCoord {
 					p.Output <- fmt.Sprintf("Unknown command: %s", msg)
 				}
 			}
@@ -143,7 +140,7 @@ func (p *Player) DoShipPlacement() {
 	randomize := false
 	// if we're an AI player, we always pick random
 	if p.IsAI {
-		randomize = true;
+		randomize = true
 	}
 	// shipPlacementLoop:
 	for _, ship := range p.Ships {
@@ -203,7 +200,7 @@ func (p *Player) DoShipPlacement() {
 							}
 							for i := 0; i < ship.Length; i++ {
 								validPlacement := true
-								if (p.Board.Grid[coords[0]][coords[1]+i] != nil) {
+								if p.Board.Grid[coords[0]][coords[1]+i] != nil {
 									cString, err := coordsToString([2]int{coords[0], coords[1] + i})
 									if err != nil {
 										p.Output <- fmt.Sprintf("Something went wrong with your ship placement, try again: %s", err)
@@ -234,7 +231,7 @@ func (p *Player) DoShipPlacement() {
 							}
 							for i := 0; i < ship.Length; i++ {
 								validPlacement := true
-								if (p.Board.Grid[coords[0]+i][coords[1]] != nil) {
+								if p.Board.Grid[coords[0]+i][coords[1]] != nil {
 									cString, err := coordsToString([2]int{coords[0], coords[1] + i})
 									if err != nil {
 										p.Output <- fmt.Sprintf("Something went wrong with your ship placement, try again: %s", err)
@@ -297,7 +294,7 @@ func (p Player) ShipStatus() string {
 }
 
 func (p *Player) BeginTurn() {
-	if (p.IsAI) {
+	if p.IsAI {
 		p.PassTurn()
 	}
 	p.Output <- "It is your turn"
@@ -313,55 +310,47 @@ func (p *Player) FireAt(coords [2]int) (string, error) {
 	if p.ShotsFired[coords[0]][coords[1]] != nil {
 		coordString, err := coordsToString(coords)
 		if err != nil {
-			return output, errors.New("You have already fired at: INVALID: " + err.Error());
+			return output, errors.New("You have already fired at: INVALID: " + err.Error())
 		}
 		return output, errors.New("You have already fired at: " + coordString)
 	}
 
-	res, err := p.game.GetOpponent(p).GetShotAt(coords)
+	res, err := p.game.Fire(p, coords)
 	if err != nil {
 		return output, errors.New("Target error: " + err.Error())
 	}
-	if res == "Miss!" {
-		b := false
-		p.ShotsFired[coords[0]][coords[1]] = &b
-	} else {
-		b := true
-		p.ShotsFired[coords[0]][coords[1]] = &b
-	}
+	p.ShotsFired[coords[0]][coords[1]] = &res
 
-	output += "Result: " + res
+	output += "Result: "
+	if res == true {
+		output += "Hit!"
+	} else {
+		output += "Miss!"
+	}
 	return output, nil
 }
 
-func (p *Player) GetShotAt(coords [2]int) (string, error) {
-	output := ""
-
+func (p *Player) GetShotAt(coords [2]int) (*Ship, error) {
 	// check for already received shot at this coord
 	if p.ShotsReceived[coords[0]][coords[1]] != nil {
 		coordString, err := coordsToString(coords)
 		if err != nil {
-			return output, errors.New("You have already fired at: INVALID: " + err.Error());
+			return nil, errors.New("You have already fired at: INVALID: " + err.Error())
 		}
-		return output, errors.New("You have already fired at: " + coordString)
+		return nil, errors.New("You have already fired at: " + coordString)
 	}
 
 	shipAtCoord := p.Board.GetShipAt(coords)
 	if shipAtCoord != nil {
 		b := true
 		p.ShotsReceived[coords[0]][coords[1]] = &b // set received shot at this coord
-		output += "Hit!"
 		shipAtCoord.Hits++
-		if shipAtCoord.isDestroyed() {
-			output += "\nYou sank the " + shipAtCoord.Name + "!"
-		}
+		return shipAtCoord, nil
 	} else {
 		b := false
 		p.ShotsReceived[coords[0]][coords[1]] = &b // set received shot at this coord
-		output += "Miss!"
+		return nil, nil
 	}
-
-	return output, nil
 }
 
 func (p *Player) ShipsRemaining() int {
@@ -374,4 +363,12 @@ func (p *Player) ShipsRemaining() int {
 	}
 
 	return remaining
+}
+
+func (p *Player) Lose() {
+	p.Output <- "You lose!"
+}
+
+func (p *Player) Win() {
+	p.Output <- "Winner winner, chicken dinner!"
 }

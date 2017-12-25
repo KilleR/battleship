@@ -30,12 +30,12 @@ func readLine(prompt string) string{
 func stringToCoords(coord string) ([2]int, error) {
 	var output [2]int
 
-	coordRex := regexp.MustCompile(`([a-jA-J])([0-9])`)
+	coordRex := regexp.MustCompile(`([a-jA-J])([0-9]{1,2})`)
 
 	coordString := coordRex.FindAllStringSubmatch(coord, -1)
 
 	output[1] = 4
-	if(len(coordString) > 0 ) {
+	if len(coordString) > 0 {
 		var err error
 		switch coordString[0][1] {
 		case "a","A":
@@ -62,6 +62,9 @@ func stringToCoords(coord string) ([2]int, error) {
 			return output, errors.New("First coordinate is invalid (A-J): "+coordString[0][1])
 		}
 		output[1], err = strconv.Atoi(coordString[0][2])
+		if output[1] <1 || output[1] > 10 {
+			return output, errors.New("second coordinate out of range, must be 1-10")
+		}
 		output[1]--
 		if err != nil {
 			return output, err
@@ -76,7 +79,7 @@ func stringToCoords(coord string) ([2]int, error) {
 func coordsToString(coord [2]int) (string, error) {
 	output := ""
 
-	if(len(coord) == 2 ) {
+	if len(coord) == 2 {
 		var err error
 		switch coord[0] {
 		case 0:

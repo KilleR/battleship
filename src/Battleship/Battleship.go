@@ -26,7 +26,7 @@ Once a player has sunk all the op
  */
 var (
 	me   *Player
-	clientGame Game
+	clientGame *Game
 )
 
 func main() {
@@ -35,10 +35,12 @@ func main() {
 	fmt.Println("------------")
 	fmt.Print(">")
 
+	discordConnect()
+
 Shell:
 	for {
 		// Check for game end
-		if clientGame.State == "playing" && me.ShipsRemaining() <= 0 {
+		if clientGame != nil && clientGame.State == "playing" && me.ShipsRemaining() <= 0 {
 			fmt.Println("You Lose!")
 			break Shell
 		}
@@ -53,7 +55,7 @@ Shell:
 			fmt.Println("Bye!")
 			break Shell
 		default:
-			if clientGame.State == "" {
+			if clientGame == nil || clientGame.State == "" {
 				fmt.Println("Unknown command:", text)
 				fmt.Print(">")
 			} else {

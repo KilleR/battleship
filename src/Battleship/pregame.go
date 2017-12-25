@@ -5,13 +5,12 @@ import (
 	"time"
 )
 
-func gameStart() Game {
+func gameStart() *Game {
 	game := Game{}
 
 	game.State = "setup"
 
 	p1 := Player{
-		Name:  "Bill",
 		game:  &game,
 		Ships: makePlayerShips(),
 		Board: &GameBoard{},
@@ -19,7 +18,6 @@ func gameStart() Game {
 	//p1.Board.init()
 	game.Player1 = &p1
 	p2 := Player{
-		Name:  "Bill",
 		game:  &game,
 		Ships: makePlayerShips(),
 		Board: &GameBoard{},
@@ -27,7 +25,12 @@ func gameStart() Game {
 	//p2.Board.init()
 	game.Player2 = &p2
 
-	me = game.Player1
+	var err error
+	me, err = game.Connect()
+	if err != nil {
+		fmt.Println("Failed to connect:",err)
+		return nil
+	}
 
 	go me.Init()
 
@@ -47,11 +50,5 @@ func gameStart() Game {
 		}
 	}()
 
-	//fmt.Println("This is your game board:")
-	//fmt.Println(render(me))
-	//fmt.Println("Start placing ships!")
-
-	//game.State = "playing"
-
-	return game
+	return &game
 }

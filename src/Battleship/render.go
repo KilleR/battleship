@@ -6,7 +6,7 @@ import (
 
 func render(p *Player) string {
 	b := p.Board
-	output := "";
+	output := ""
 
 	rows := make([]string, 11)
 
@@ -48,7 +48,7 @@ func render(p *Player) string {
 }
 
 func renderFired(p *Player) string {
-	output := "";
+	output := ""
 
 	rows := make([]string, 11)
 
