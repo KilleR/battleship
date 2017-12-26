@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"time"
 )
 
 /*
@@ -27,6 +28,7 @@ Once a player has sunk all the op
 var (
 	me   *Player
 	clientGame *Game
+	host *GameHost
 )
 
 func main() {
@@ -35,33 +37,46 @@ func main() {
 	fmt.Println("------------")
 	fmt.Print(">")
 
-	discordConnect()
+	host = &GameHost{}
+	host.Init()
+	defer host.Discord.Close()
 
-Shell:
+//Shell:
+	// loop reading from discord
 	for {
-		// Check for game end
-		if clientGame != nil && clientGame.State == "playing" && me.ShipsRemaining() <= 0 {
-			fmt.Println("You Lose!")
-			break Shell
+		select {
+		case text := <-host.Discord.Output:
+			fmt.Println("Message from discord:",text)
+		case <-time.After(time.Millisecond * 100):
+			// do nothing
 		}
-
-		text := readLine("")
-
-		switch text {
-		case "start":
-			fmt.Println("Starting...")
-			clientGame = gameStart()
-		case "exit":
-			fmt.Println("Bye!")
-			break Shell
-		default:
-			if clientGame == nil || clientGame.State == "" {
-				fmt.Println("Unknown command:", text)
-				fmt.Print(">")
-			} else {
-				me.Input <- text
-			}
-		}
-
 	}
+
+	// loop reading from STDIN
+	//for {
+	//	// Check for game end
+	//	if clientGame != nil && clientGame.State == "playing" && me.ShipsRemaining() <= 0 {
+	//		fmt.Println("You Lose!")
+	//		break Shell
+	//	}
+	//
+	//	text := readLine("")
+	//
+	//	switch text {
+	//	case "start":
+	//		fmt.Println("Starting...")
+	//		clientGame = gameStart()
+	//	case "exit":
+	//		fmt.Println("Bye!")
+	//		break Shell
+	//	default:
+	//		if clientGame == nil || clientGame.State == "" {
+	//			fmt.Println("Unknown command:", text)
+	//			fmt.Print(">")
+	//		} else {
+	//			me.Input <- text
+	//		}
+	//	}
+	//
+	//}
 }

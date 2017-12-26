@@ -1,11 +1,11 @@
 package main
 
-import "github.com/bwmarrin/discordgo"
-
 type GameHost struct {
-	Discord *discordgo.Session
+	Discord *Discord
 }
 
 func (gh *GameHost) Init() {
-	gh.Discord = discordConnect()
+	gh.Discord = &Discord{}
+
+	gh.Discord.Connect()
 }
