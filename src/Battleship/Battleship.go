@@ -41,12 +41,23 @@ func main() {
 	host.Init()
 	defer host.Discord.Close()
 
+	fmt.Println(host.Clients.Get("fie"))
+
 //Shell:
 	// loop reading from discord
 	for {
 		select {
-		case text := <-host.Discord.Output:
-			fmt.Println("Message from discord:",text)
+		case msg := <-host.Discord.Recv:
+			fmt.Printf("Message from discord (ch: %s): %s\n", msg.ClientID, msg.Content)
+			// check if the client is known
+			gc := host.Clients.Get(msg.ClientID)
+			if gc == nil {
+				host.Discord.Send <- DiscordMessage{msg.ClientID, "I don't know you, give me a moment..."}
+				host.Clients.Set(msg.ClientID, &GameClient{ID: msg.ClientID})
+				host.Discord.Send <- DiscordMessage{msg.ClientID, "Ok... what is your name?"}
+			} else {
+
+			}
 		case <-time.After(time.Millisecond * 100):
 			// do nothing
 		}

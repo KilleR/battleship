@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"log"
 	"time"
+	"math/rand"
+	"errors"
 )
 
 type Game struct {

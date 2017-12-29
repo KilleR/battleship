@@ -1,8 +1,5 @@
 package main
 
-import (
-)
-
 type GameBoard struct {
 	Grid [10][10]*Ship
 }
