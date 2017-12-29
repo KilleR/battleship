@@ -4,19 +4,27 @@ import (
 	"github.com/bwmarrin/discordgo"
 	"log"
 	"fmt"
+	"os"
+	"time"
 )
+
+type DiscordMessage struct {
+	ClientID string // this will use the channelID for the connected player to identify them to the game
+	Content  string
+}
 
 type Discord struct {
 	Session *discordgo.Session
-	Input chan string
-	Output chan string
+	Recv    chan DiscordMessage
+	Send    chan DiscordMessage
 }
 
 func (d *Discord) Connect() {
-	d.Input = make(chan string)
-	d.Output = make(chan string)
+	d.Recv = make(chan DiscordMessage)
+	d.Send = make(chan DiscordMessage)
 
-	discord, err := discordgo.New("Bot Mzk0OTA5MDU0MzE0NzQxNzcz.DSLkuA.Eake1xS39S_ZBFCeh_5An_NEXlY")
+	botKey := os.Getenv("BATTLESHIP_BOT_KEY")
+	discord, err := discordgo.New("Bot " + botKey)
 	if err != nil {
 		log.Fatalln("Failed to start Discord BOT:", err)
 	}
@@ -31,6 +39,22 @@ func (d *Discord) Connect() {
 	fmt.Println("Discord bot is now running.")
 
 	d.Session = discord
+
+	// begin listening for messages to send
+	go func() {
+		for {
+			select {
+			case msg := <-d.Send:
+				fmt.Printf("Message send (ch: %s): %s\n", msg.ClientID, msg.Content)
+				_,err := d.Session.ChannelMessageSend(msg.ClientID, msg.Content)
+				if err != nil {
+					log.Println("Error sending message to Discord:", err)
+				}
+			case <-time.After(time.Millisecond * 100):
+				// do nothing
+			}
+		}
+	}()
 }
 
 func (d *Discord) Close() {
@@ -87,8 +111,8 @@ contentSwitch:
 			return
 		}
 		if channel.Type == discordgo.ChannelTypeDM {
-			d.Output <- m.Content
-			s.ChannelMessageSend(m.ChannelID, "Hi! Sorry, I'm not able to understand you yet")
+			s.ChannelMessageSend(m.ChannelID, "Hi! My brain is being tinkered with... I may be unpredictable")
+			d.Recv <- DiscordMessage{ClientID: m.ChannelID, Content: m.Content}
 			break contentSwitch
 		}
 	}
