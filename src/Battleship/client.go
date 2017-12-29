@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"strings"
+	"time"
 )
 
 type GameClient struct {
@@ -12,16 +13,51 @@ type GameClient struct {
 	Name   string
 }
 
+func (c *GameClient) HandleGameMessages(out chan DiscordMessage) chan bool {
+	terminateChannel := make(chan bool)
+	// listen for output from Player.Output
+	go func() {
+		for {
+			select {
+			case <- terminateChannel:
+				return
+			case msg := <-c.Player.Output:
+				out <- DiscordMessage{c.ID, msg}
+			case <-time.After(time.Millisecond * 100):
+				// do nothing
+			}
+		}
+	}()
+
+	return terminateChannel
+}
+
+func (c *GameClient) StopHandlingGameMessages(term chan bool) {
+	term <- true
+	close(term)
+}
+
 // Handle incoming messages for this client
 func (c *GameClient) HandleDiscordMessage(out chan DiscordMessage, text string) {
-	var err error
+
+	
 	var helpText = `Commands:
 help, ? - Prints this message.
-rename - Forgets your nickname, and asks for a new one.`
+rename - Forgets your nickname, and asks for a new one.
+start, new, new game - Starts a game of Battleship!`
 	switch {
 	case c.Name == "": // name is blank, we must be naming the player
 		c.Name = text
-		out <- DiscordMessage{c.ID, fmt.Sprintf("Hi %s! You can change what you're called if you aren't playnig a game by saying 'rename'.", c.Name)}
+		out <- DiscordMessage{c.ID, fmt.Sprintf("Hi %s! You can change what you're called if you aren't playing a game by saying 'rename'.", c.Name)}
+	case c.Player != nil:
+		text = strings.ToLower(text)
+		out <- DiscordMessage{c.ID, "You are in a game!"}
+		switch text {
+		case "exit":
+			out <- DiscordMessage{c.ID, "Sorry, you can't just quit a game. You might hurt someone else's feelings"}
+		default:
+			c.Player.Input <- text
+		}
 	default:
 		text = strings.ToLower(text)
 		switch text {
@@ -32,18 +68,15 @@ rename - Forgets your nickname, and asks for a new one.`
 			out <- DiscordMessage{c.ID, "OK! What do you want to be called instead?"}
 		case "start", "new", "new game":
 			out <- DiscordMessage{c.ID, "Searching for a game..."}
-			g:=c.Host.Games.New()
-			if g == nil {
+			p :=c.Host.ConnectToGame()
+			p = nil
+			if p == nil {
 				out <- DiscordMessage{c.ID, "Sorry, I couldn't find a game for you. Try again soon!"}
 			} else {
-				fmt.Println(c)
-				fmt.Println(g)
-				c.Player, err = g.Connect()
-				if err != nil {
-					out <- DiscordMessage{c.ID, fmt.Sprintf("Sorry, something went wrong connecting to the game: %s", err.Error())}
-				} else {
-					out <- DiscordMessage{c.ID, fmt.Sprintf("Success, you have connected to game: %s", g.ID)}
-				}
+				c.Player = p
+				c.HandleGameMessages(out)
+				c.Player.Init(c.Name)
+				out <- DiscordMessage{c.ID, fmt.Sprintf("Success, you have connected to game: %s", p.game.ID)}
 			}
 
 		default:

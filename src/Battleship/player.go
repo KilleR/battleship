@@ -21,17 +21,15 @@ type Player struct {
 }
 
 // Startup script for a new Player
-func (p *Player) Init() {
+func (p *Player) Init(playerName string) {
 	p.Input = make(chan string)
 	p.Output = make(chan string)
 
 	if p.IsAI {
 		p.Name = "BOT"
 	} else {
-		name := p.ReadLine("Enter your name:")
-		p.Name = name
-		p.ID = name //@TODO: add real ID generation here
-		p.Output <- "Hello, " + name
+		p.Name = playerName
+		p.Output <- "Hello, " + p.Name
 	}
 
 	p.DoShipPlacement()

@@ -19,6 +19,11 @@ func (gh *GameHost) Init() {
 	gh.Games = gh.Games.Init()
 }
 
+func (gh *GameHost) ConnectToGame() *Player {
+	p := gh.Games.Connect()
+	return p
+}
+
 // Data store for clients
 type GameHostClients struct {
 	sync.RWMutex
@@ -32,14 +37,6 @@ func (ghc GameHostClients) Init() GameHostClients {
 }
 
 func (ghc GameHostClients) Get(key string) *GameClient {
-	ghc.RLock()
-	defer ghc.RUnlock()
-
-	gc := ghc.data[key] // doesn't need `gc,ok :=` idiom, will return <nil> if value is not set
-	return gc
-}
-
-func (ghc GameHostClients) GetAll(key string) *GameClient {
 	ghc.RLock()
 	defer ghc.RUnlock()
 
@@ -100,6 +97,41 @@ func (ghg GameHostGames) New() *Game {
 			return &g
 		}
 	}
+	return nil
+}
+
+func (ghg GameHostGames) ConnectToActive() *Player {
+	// go through all of the active games and try to connect
+	ghg.RLock()
+	defer ghg.RUnlock()
+
+	for _,v := range ghg.data {
+		p, err := v.Connect()
+		if err == nil {
+			return p
+		}
+	}
+
+	return nil
+}
+
+func (ghg GameHostGames) Connect() *Player {
+	// try to connect to an active game
+	p := ghg.ConnectToActive()
+	if p != nil {
+		return p
+	}
+
+	// if there are no valid active games, make a new one
+	g := ghg.New()
+	if g != nil {
+		// connect to the new game
+		p, err := g.Connect()
+		if err == nil {
+			return p
+		}
+	}
+
 	return nil
 }
 

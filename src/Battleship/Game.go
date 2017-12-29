@@ -28,14 +28,13 @@ func (g Game) Init() Game {
 		Ships: makePlayerShips(),
 		Board: &GameBoard{},
 	}
-	//p1.Board.init()
 	g.Player1 = &p1
+
 	p2 := Player{
 		game:  &g,
 		Ships: makePlayerShips(),
 		Board: &GameBoard{},
 	}
-	//p2.Board.init()
 	g.Player2 = &p2
 
 	return g
@@ -161,7 +160,7 @@ func (g *Game) MakeAIPlayer(p *Player) string {
 			}
 		}()
 
-		opp.Init()
+		opp.Init("BOT")
 		p.Output <- "AI ready"
 		//g.ReadyCheck(g.Player2)
 		return "Made your opponent an AI"
