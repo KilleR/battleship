@@ -25,13 +25,10 @@ Destroyed ships are announced (optional)
 
 Once a player has sunk all the op
  */
-var (
-	me   *Player
-	clientGame *Game
-	host *GameHost
-)
 
 func main() {
+	var host *GameHost
+
 	// start shell
 	fmt.Println("Battleship!")
 	fmt.Println("------------")
@@ -41,9 +38,7 @@ func main() {
 	host.Init()
 	defer host.Discord.Close()
 
-	fmt.Println(host.Clients.Get("fie"))
-
-//Shell:
+	//Shell:
 	// loop reading from discord
 	for {
 		select {
@@ -53,10 +48,10 @@ func main() {
 			gc := host.Clients.Get(msg.ClientID)
 			if gc == nil {
 				host.Discord.Send <- DiscordMessage{msg.ClientID, "I don't know you, give me a moment..."}
-				host.Clients.Set(msg.ClientID, &GameClient{ID: msg.ClientID})
+				host.Clients.Set(msg.ClientID, &GameClient{Host: host, ID: msg.ClientID})
 				host.Discord.Send <- DiscordMessage{msg.ClientID, "Ok... what is your name?"}
 			} else {
-
+				gc.HandleDiscordMessage(host.Discord.Send, msg.Content)
 			}
 		case <-time.After(time.Millisecond * 100):
 			// do nothing

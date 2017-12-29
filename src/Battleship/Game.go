@@ -9,11 +9,36 @@ import (
 )
 
 type Game struct {
+	ID           string
 	State        string // holds game state 'setup', 'playing' ...
 	PlayerTurn   *Player
 	PlayersReady int
 	Player1      *Player
 	Player2      *Player
+}
+
+func (g Game) Init() Game {
+	// set a game to it's base state (allows recycling of games.
+	g.State = "setup"
+	g.PlayerTurn = nil
+	g.PlayersReady = 0
+
+	p1 := Player{
+		game:  &g,
+		Ships: makePlayerShips(),
+		Board: &GameBoard{},
+	}
+	//p1.Board.init()
+	g.Player1 = &p1
+	p2 := Player{
+		game:  &g,
+		Ships: makePlayerShips(),
+		Board: &GameBoard{},
+	}
+	//p2.Board.init()
+	g.Player2 = &p2
+
+	return g
 }
 
 func (g *Game) Connect() (*Player, error) {
@@ -69,7 +94,7 @@ func (g *Game) Fire(p *Player, coords [2]int) (bool, error) {
 			p.Output <- fmt.Sprintf("You destroyed their %s", hitShip.Name)
 			// check to see if ALL their ships are destroyed
 			allDestroyed := true
-			for _,s := range o.Ships {
+			for _, s := range o.Ships {
 				if !s.isDestroyed() {
 					allDestroyed = false
 				}
@@ -81,7 +106,7 @@ func (g *Game) Fire(p *Player, coords [2]int) (bool, error) {
 				o.Output <- "End of game details"
 				p.Output <- fmt.Sprintf("%s's ships:", p.Name)
 				o.Output <- fmt.Sprintf("%s's ships:", p.Name)
-				for _,s := range p.Ships {
+				for _, s := range p.Ships {
 					if s.isDestroyed() {
 						p.Output <- fmt.Sprintf("%s :- SUNK!", s.Name)
 						o.Output <- fmt.Sprintf("%s :- SUNK!", s.Name)
@@ -92,7 +117,7 @@ func (g *Game) Fire(p *Player, coords [2]int) (bool, error) {
 				}
 				p.Output <- fmt.Sprintf("%s's ships:", o.Name)
 				o.Output <- fmt.Sprintf("%s's ships:", o.Name)
-				for _,s := range o.Ships {
+				for _, s := range o.Ships {
 					if s.isDestroyed() {
 						p.Output <- fmt.Sprintf("%s :- SUNK!", s.Name)
 						o.Output <- fmt.Sprintf("%s :- SUNK!", s.Name)

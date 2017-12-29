@@ -111,7 +111,7 @@ contentSwitch:
 			return
 		}
 		if channel.Type == discordgo.ChannelTypeDM {
-			s.ChannelMessageSend(m.ChannelID, "Hi! My brain is being tinkered with... I may be unpredictable")
+			s.ChannelMessageSend(m.ChannelID, "My brain is being tinkered with... I may be unpredictable")
 			d.Recv <- DiscordMessage{ClientID: m.ChannelID, Content: m.Content}
 			break contentSwitch
 		}
