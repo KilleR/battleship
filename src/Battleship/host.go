@@ -2,6 +2,7 @@ package main
 
 type GameHost struct {
 	Discord *Discord
+	clients []*GameClient
 }
 
 func (gh *GameHost) Init() {
