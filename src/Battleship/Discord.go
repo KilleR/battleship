@@ -5,7 +5,6 @@ import (
 	"log"
 	"fmt"
 	"os"
-	"time"
 )
 
 type DiscordMessage struct {
@@ -43,15 +42,11 @@ func (d *Discord) Connect() {
 	// begin listening for messages to send
 	go func() {
 		for {
-			select {
-			case msg := <-d.Send:
-				fmt.Printf("Message send (ch: %s): %s\n", msg.ClientID, msg.Content)
-				_,err := d.Session.ChannelMessageSend(msg.ClientID, msg.Content)
-				if err != nil {
-					log.Println("Error sending message to Discord:", err)
-				}
-			case <-time.After(time.Millisecond * 100):
-				// do nothing
+			msg := <-d.Send
+			fmt.Printf("Message send (ch: %s): %s\n", msg.ClientID, msg.Content)
+			_, err := d.Session.ChannelMessageSend(msg.ClientID, msg.Content)
+			if err != nil {
+				log.Println("Error sending message to Discord:", err)
 			}
 		}
 	}()

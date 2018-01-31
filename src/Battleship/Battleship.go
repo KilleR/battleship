@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"time"
+	"log"
 )
 
 /*
@@ -41,11 +41,12 @@ func main() {
 	//Shell:
 	// loop reading from discord
 	for {
-		select {
-		case msg := <-host.Discord.Recv:
-			fmt.Printf("Message from discord (ch: %s): %s\n", msg.ClientID, msg.Content)
+		msg := <-host.Discord.Recv
+			log.Printf("Message from discord (ch: %s): %s\n", msg.ClientID, msg.Content)
 			// check if the client is known
+			log.Println("Getting client")
 			gc := host.Clients.Get(msg.ClientID)
+			log.Println("Got client")
 			if gc == nil {
 				host.Discord.Send <- DiscordMessage{msg.ClientID, "I don't know you, give me a moment..."}
 				host.Clients.Set(msg.ClientID, &GameClient{Host: host, ID: msg.ClientID})
@@ -53,9 +54,6 @@ func main() {
 			} else {
 				gc.HandleDiscordMessage(host.Discord.Send, msg.Content)
 			}
-		case <-time.After(time.Millisecond * 100):
-			// do nothing
-		}
 	}
 
 	// loop reading from STDIN

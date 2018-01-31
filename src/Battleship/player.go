@@ -129,7 +129,6 @@ func (p *Player) ReadLine(prompt string) string {
 	if prompt != "" {
 		p.Output <- prompt
 	}
-	p.Output <- ">"
 
 	return <-p.Input
 }
@@ -140,6 +139,9 @@ func (p *Player) DoShipPlacement() {
 	if p.IsAI {
 		randomize = true
 	}
+
+	p.Output <- "This is your board:"
+	p.Output <- fmt.Sprint(render(p))
 	// shipPlacementLoop:
 	for _, ship := range p.Ships {
 		p.Output <- fmt.Sprintf("Place your %s (%d long)!", ship.Name, ship.Length)

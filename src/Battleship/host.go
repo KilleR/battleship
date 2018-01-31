@@ -2,6 +2,7 @@ package main
 
 import (
 	"sync"
+	"log"
 )
 
 type GameHost struct {
@@ -122,6 +123,7 @@ func (ghg GameHostGames) Connect() *Player {
 		return p
 	}
 
+	log.Println("No game, making a new one")
 	// if there are no valid active games, make a new one
 	g := ghg.New()
 	if g != nil {

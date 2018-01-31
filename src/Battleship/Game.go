@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"log"
-	"time"
 	"math/rand"
 	"errors"
 )
@@ -151,12 +150,8 @@ func (g *Game) MakeAIPlayer(p *Player) string {
 		//start consuming the AI's output
 		go func() {
 			for {
-				select {
-				case msg := <-opp.Output:
-					log.Println(msg)
-				case <-time.After(time.Millisecond * 100):
-					// do nothing
-				}
+				msg := <-opp.Output
+				log.Println("Ai message:", msg)
 			}
 		}()
 

@@ -11,12 +11,12 @@ func render(p *Player) string {
 	rows := make([]string, 11)
 
 	// put in grid headers
-	rows[0] = ".  A B C D E F G H I J"
+	rows[0] = "`.  A B C D E F G H I J`"
 	for i:=1;i<len(rows);i++ {
+		rows[i] += strconv.Itoa(i)
 		if i<10 {
 			rows[i] += " "
 		}
-		rows[i] += strconv.Itoa(i)
 	}
 
 	// put the pieces into rows
@@ -41,7 +41,7 @@ func render(p *Player) string {
 
 	// render the rows
 	for _, r := range rows {
-		output += r+"\n"
+		output += "`"+r+"`\n"
 	}
 
 	return output
@@ -55,10 +55,10 @@ func renderFired(p *Player) string {
 	// put in grid headers
 	rows[0] = ".  A B C D E F G H I J"
 	for i:=1;i<len(rows);i++ {
+		rows[i] += strconv.Itoa(i)
 		if i<10 {
 			rows[i] += " "
 		}
-		rows[i] += strconv.Itoa(i)
 	}
 
 	// put the pieces into rows
@@ -78,7 +78,7 @@ func renderFired(p *Player) string {
 
 	// render the rows
 	for _, r := range rows {
-		output += r+"\n"
+		output += "`"+r+"`\n"
 	}
 
 	return output

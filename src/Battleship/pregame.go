@@ -1,8 +1,5 @@
 package main
 
-import (
-)
-
 func gameStart() *Game {
 	game := Game{}.Init()
 
@@ -42,7 +39,8 @@ func gameStart() *Game {
 	//			} else {
 	//				fmt.Println(msg)
 	//			}
-	//		case <-time.After(time.Millisecond * 100):
+	//		default:
+	//time.Sleep(time.Millisecond * 100)
 	//			//do nothing
 	//		}
 	//	}
