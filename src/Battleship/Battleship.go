@@ -32,7 +32,6 @@ func main() {
 	// start shell
 	fmt.Println("Battleship!")
 	fmt.Println("------------")
-	fmt.Print(">")
 
 	host = &GameHost{}
 	host.Init()
@@ -44,9 +43,7 @@ func main() {
 		msg := <-host.Discord.Recv
 			log.Printf("Message from discord (ch: %s): %s\n", msg.ClientID, msg.Content)
 			// check if the client is known
-			log.Println("Getting client")
 			gc := host.Clients.Get(msg.ClientID)
-			log.Println("Got client")
 			if gc == nil {
 				host.Discord.Send <- DiscordMessage{msg.ClientID, "I don't know you, give me a moment..."}
 				host.Clients.Set(msg.ClientID, &GameClient{Host: host, ID: msg.ClientID})
