@@ -22,8 +22,8 @@ type Player struct {
 
 // Startup script for a new Player
 func (p *Player) Init(playerName string) {
-	p.Input = make(chan string)
-	p.Output = make(chan string)
+	p.Input = make(chan string, 10)
+	p.Output = make(chan string, 10)
 
 	if p.IsAI {
 		p.Name = "BOT"
@@ -38,6 +38,16 @@ func (p *Player) Init(playerName string) {
 
 	// listen for commands
 	go func() {
+		var helpText = `Commands:
+help, ? - Prints this message.
+aime - Makes an AI opponent if no other player is connected
+turn - tells you who's turn it is
+players - lists connected players
+render - shows your game board, and your ships
+fired - shows where you've fired at, and hits
+ships - lists your ships, and how many hits they've taken
+pass - skip your turn
+[coordinate] - fire at a coordinate, if it is your turn`
 	CmdLoop:
 		for {
 			msg := p.ReadLine("")
@@ -45,6 +55,8 @@ func (p *Player) Init(playerName string) {
 			switch msg {
 			case "hi":
 				p.Output <- fmt.Sprint("Hello!")
+			case "help", "?":
+				p.Output <- helpText
 			case "aime":
 				p.Output <- p.game.MakeAIPlayer(p)
 			case "turn":
