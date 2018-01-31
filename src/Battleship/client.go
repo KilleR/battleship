@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"strings"
 	"log"
-	"time"
 )
 
 type GameClient struct {
